@@ -5,6 +5,7 @@ import styled from "styled-components"
 import { ReactComponent as LatexHalf } from "./prePreparedSVG/img/latexHalf.svg"
 
 import { timer }  from 'd3-timer';
+import GrowingLine from "./growingLine"
 
 //import  { ReactComponent as CreatedSVG } from '../img/svgFromMathJax.svg';
 
@@ -67,6 +68,8 @@ class MathJaxSVG extends React.Component {
                     
                     <rect x={2*this.state.dt_state_3-100} y = {this.state.dt_state_3-135} width={500-2*this.state.dt_state_3} height="20"    fill="black" />
                     
+                    <GrowingLine />
+
                 </svg>
             </div>
         )            
