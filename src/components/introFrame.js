@@ -61,8 +61,8 @@ class MathJaxSVG extends React.Component {
                     
                     <foreignObject x='70' y={this.state.dt_state_3-150} opacity={this.state.dt_state/100} color='white'>
                         <MathJax.Provider>
-                            <MathJax.Node inLine formula={this.titleSVG}/>
-                            <MathJax.Node inLine formula={this.sum_tex}/>
+                            <MathJax.Node inline formula={this.titleSVG}/>
+                            <MathJax.Node inline formula={this.sum_tex}/>
                         </MathJax.Provider>
                     </foreignObject>
                     
