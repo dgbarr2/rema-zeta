@@ -33,22 +33,23 @@ const setColor = (z) => {
 
 class QuadraticGraphic extends React.Component {
 
-    
+    svgWidth = 500
+    svgHeight = 500
+
+
     render() {
         
         //    
         // Coordinates for z = f[(x + iy)]
         //
 
-        const xMin = 0, xMax = 100  // xMax must equal yMax for now.
-        const yMin = 0, yMax = 100
+        const xMin = 0, xMax = 10  // xMax must equal yMax for now.
+        const yMin = 0, yMax = 10
         const interval = 1
 
         const nPoints_x = (xMax - xMin) / interval
         const nPoints_y = (yMax - yMin) / interval
-         
-
-    
+        const squareSize = interval * (svgWidth / (xMax - xMin ))
 
         const xVec = seqa(xMin,interval,nPoints_x)
         const yVec = seqa(yMin,interval,nPoints_y)
@@ -82,16 +83,16 @@ class QuadraticGraphic extends React.Component {
 
         // Now we locate the position for each of the squares
 
-        const squareWidth = 5
-        const xMin_sq = xMin * squareWidth
-        const xMax_sq = xMax * squareWidth
-        const yMin_sq = yMin * squareWidth
-        const yMax_sq = yMax * squareWidth
+        const squareSize = 5
+        const xMin_sq = xMin * squareSize
+        const xMax_sq = xMax * squareSize
+        const yMin_sq = yMin * squareSize
+        const yMax_sq = yMax * squareSize
 
         const makeX2 = () => {
             let x = []
             for (let i=0;i<nPoints_x;i+=1){
-                x[i] = xMin_sq + i*squareWidth
+                x[i] = xMin_sq + i*squareSize
             }
             return x
         }
@@ -99,7 +100,7 @@ class QuadraticGraphic extends React.Component {
         const makeY2 = () => {
             let y = []
             for (let i=0;i<nPoints_y;i+=1){
-                y[i] = yMax_sq - (i+1)*squareWidth  // in JS y=0 is at the top of the figure 
+                y[i] = yMax_sq - (i+1)*squareSize  // in JS y=0 is at the top of the figure 
                 console.log(" y = ", y[i])
             }
             return y
@@ -110,12 +111,12 @@ class QuadraticGraphic extends React.Component {
         let gridLines_y = _.map(makeY(), v => <line x1='0' y1={v} x2='600' y2={v} stroke='lightblue' strokeWidth='1'/>)
         */
         
-        let squares = _.map(makeX2(), v => _.map( makeY2(), w => (<rect x={v} y={w} width={squareWidth+1} height={squareWidth+1} fill={colors[w/squareWidth][v/squareWidth]}/>)))
+        let squares = _.map(makeX2(), v => _.map( makeY2(), w => (<rect x={v} y={w} width={squareSize+1} height={squareSize+1} fill={colors[w/squareSize][v/squareSize]}/>)))
         
 
 
     return (
-        <svg height="500" width="500">
+        <svg height={this.svgHeight} width={this.svgWidth}>
                 {squares}
                 
         </svg>
