@@ -12,9 +12,11 @@ console.log(zeta3(-1).real); // => -1/12
 console.log(zeta3(-2).real); // => 0
 
 const seqa = (start,increment,n) => {
-    let vec = [start]
-    for (let i=1;i<n;i++){
-        vec = [...vec,start+i*increment]
+    let vec = []
+    let cf = 10   // Correction factor to ensure calculations are performed on integers. See https://stackoverflow.com/questions/1458633/how-to-deal-with-floating-point-number-precision-in-javascript
+    for (let i=0;i<n;i++){
+        const incrementCf = increment * cf
+        vec[i] = (i * incrementCf) / cf
     }
     return vec
 }
@@ -28,10 +30,17 @@ const setColor = (z) => {
     //} else{
     //    return "rgb(0,0,0)"
     //}
-    return "rgb("+(100*z)+",0,"+100*z+")"
+    //return "rgb("+(100*z)+",0,"+100*z+")"
+    console.log("z = ", z)
+    return "rgb("+(1*z)+",0,"+1*z+")"
 }
 
-class QuadraticGraphic extends React.Component {
+const quadratic = (x,y,a,b) => {
+    return (x-a)*(x-a) + (y-b)*(y-b) 
+    //return (y-b)*(y-b) 
+  }
+
+class ZetaGraphic extends React.Component {
 
     svgWidth = 500
     svgHeight = 500
@@ -43,19 +52,29 @@ class QuadraticGraphic extends React.Component {
         // Coordinates for z = f[(x + iy)]
         //
 
-        const xMin = 0, xMax = 10  // xMax must equal yMax for now.
-        const yMin = 0, yMax = 10
-        const interval = 1
+        
+        const xMin = 0, xMax = 500  // xMax must equal yMax for now.
+        const yMin = 0, yMax = 500
+        const interval = 50
 
         const nPoints_x = (xMax - xMin) / interval
         const nPoints_y = (yMax - yMin) / interval
-        const squareSize = interval * (svgWidth / (xMax - xMin ))
+        const squareSize = interval * (this.svgWidth / (xMax - xMin ))
 
         const xVec = seqa(xMin,interval,nPoints_x)
         const yVec = seqa(yMin,interval,nPoints_y)
 
+        console.log("xVec = ", xVec)
+        console.log("yVec = ", yVec)
+        console.log("squareSize = ", squareSize)
+
+        // Include a conversion factor to avoid calcuations on non-integers
+        const cf = 10
+        const intervalCf = interval*cf, squareSizeCf = squareSize*cf
+
         // Initialise the matrix of zeta values
         let z = new Array(nPoints_x).fill(0).map(() => new Array(nPoints_y).fill(0));
+        let zMap = new Array(nPoints_x).fill(0).map(() => new Array(nPoints_y).fill(0));
         let colors = new Array(nPoints_x).fill(0).map(() => new Array(nPoints_y).fill(0));
         
         
@@ -66,13 +85,35 @@ class QuadraticGraphic extends React.Component {
         // Generate a z value for each square. 
         for (let i=0;i<nPoints_x;i++){
             for (let j=0;j<nPoints_y;j++){
-                //z[i][j] = quadratic(xVec[i],yVec[j],50,50)
-                z[i][j] = zeta3(Complex(xVec[i],yVec[j])).real
+                //z[i][j] = ((i+1)*j) * 50 
+                z[i][j] = ((quadratic(xVec[i],yVec[j],500,500))).toFixed(0) * 0.002
+                //z[i][j] = zeta3(Complex(xVec[i],yVec[j])).real
                 colors[i][j] = setColor(z[i][j])
                 if (z[i][j]<0.005 & z[i][j]>-0.005){
-                    console.log("zero point = ", xVec[i],yVec[i])
+                    //console.log("zero point = ", xVec[i],yVec[i])
                 }
-                //console.log("z, x, y = ", z[i][j], xVec[i], yVec[i])
+                //zMap[nPoints_x-1-i][j] = z[i][j]
+                
+                console.log("z, x, y = ", zMap[i][j], xVec[i], yVec[j])
+            }
+        }
+
+        // Transpose the z 'matrix'
+        for (let i=0;i<nPoints_x;i++){
+            for (let j=0;j<nPoints_y;j++){
+                zMap[nPoints_x-1-i][j] = z[j][i]
+            }
+        }
+
+
+        // Generate a color for each square.
+        for (let i=0;i<nPoints_x;i++){
+            for (let j=0;j<nPoints_y;j++){
+                
+                colors[i][j] = setColor(zMap[i][j])
+                
+                console.log("z, x, y = ", z[i][j], xVec[i], yVec[j])
+                
                 
             }
         }
@@ -83,7 +124,7 @@ class QuadraticGraphic extends React.Component {
 
         // Now we locate the position for each of the squares
 
-        const squareSize = 5
+        
         const xMin_sq = xMin * squareSize
         const xMax_sq = xMax * squareSize
         const yMin_sq = yMin * squareSize
@@ -92,36 +133,51 @@ class QuadraticGraphic extends React.Component {
         const makeX2 = () => {
             let x = []
             for (let i=0;i<nPoints_x;i+=1){
-                x[i] = xMin_sq + i*squareSize
+                
+                x[i] = (xVec[i]*cf / intervalCf) * (squareSizeCf) / cf
+                
             }
             return x
         }
 
         const makeY2 = () => {
             let y = []
+            
             for (let i=0;i<nPoints_y;i+=1){
-                y[i] = yMax_sq - (i+1)*squareSize  // in JS y=0 is at the top of the figure 
-                console.log(" y = ", y[i])
+                //y[i] = yMax_sq - (i+1)*squareSize  // in JS y=0 is at the top of the figure
+
+                  
+                y[i] = ((yMax*cf - yVec[i]*cf - intervalCf) * ((squareSizeCf) / (intervalCf))) / cf  
+                //y[i] = ((yVec[i]*cf ) * ((squareSizeCf) / (intervalCf))) / cf  
+                console.log("i, y[i], yVec[i]: ", i, y[i], yVec[i])
+                console.log("y = ", y)
+                console.log("yVec = ", yVec)
             }
             return y
         }
        
         /*
-        let gridLines_x = _.map(makeX(), v => <line x1={v[0]} y1='0' x2={v[0]} y2='400' stroke='lightblue' strokeWidth='1'/>)
-        let gridLines_y = _.map(makeY(), v => <line x1='0' y1={v} x2='600' y2={v} stroke='lightblue' strokeWidth='1'/>)
+        let gridLines_x = _.map(makeX2(), v => <line x1={v[0]} y1='0' x2={v[0]} y2='400' stroke='lightblue' strokeWidth='1'/>)
+        let gridLines_y = _.map(makeY2(), v => <line x1='0' y1={v} x2='600' y2={v} stroke='lightblue' strokeWidth='1'/>)
         */
         
-        let squares = _.map(makeX2(), v => _.map( makeY2(), w => (<rect x={v} y={w} width={squareSize+1} height={squareSize+1} fill={colors[w/squareSize][v/squareSize]}/>)))
+        let squares = _.map(makeX2(), v => _.map( makeY2(), w => (<rect x={v} y={w} width={squareSize} height={squareSize} fill={colors[w/squareSize][v/squareSize]}/>)))
+        let text = _.map(makeX2(), v => _.map( makeY2(), w => (<text x={v} y={w+15}>{v/squareSize},{w/squareSize}</text> )))
+        // NOTE: x={w} y={v} appear to be the wrong way round - but the graph this generates is correct. CHECK!
         
-
+        console.log("z = ", z)
+        console.log("zMap = ", zMap)
+        console.log("colors = ", colors)
+        console.log("squares = ", squares)
 
     return (
         <svg height={this.svgHeight} width={this.svgWidth}>
                 {squares}
-                
+                {text}
+        
         </svg>
     )
 }
 
 }
-export default QuadraticGraphic
+export default ZetaGraphic
